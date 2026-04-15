@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         positionHistory: {} // FEN (first 4 parts) -> Count
     };
 
-    const initialBoard = [
+    const START_POSITION = [
         ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
         ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
         ['', '', '', '', '', '', '', ''],
@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
         ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
     ];
+
+    let initialBoard = START_POSITION.map(row => [...row]);
 
     let selectedPos = null;
     let currentHints = [];
@@ -260,13 +262,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const gameState = checkGameState(nextColor);
 
         if (gameState === 'CHECKMATE' || gameState === 'STALEMATE' || gameState.startsWith('DRAW')) {
-            // Game Over: Keep the turn state as it is so UI knows who is mated, but lock the board
             isAITurn = true; 
             updateGameStatusUI();
             
-            // Trigger Uncle's final quote
             setTimeout(() => {
                 appendMessage('opponent', getHaoMeiQuote(gameState));
+                appendResetButton();
             }, 800);
             return;
         }
@@ -314,19 +315,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Check for Game Over (Highest Priority)
         if (gameState === 'CHECKMATE') {
             const isWhiteTurn = !isAITurn; // This is the turn that JUST ended or is about to start
-            if (isWhiteTurn) { // Black (Uncle) won
-                return pick([
-                    "少年仔，回去多練練啦，好美里的水是很深的，阿伯我還沒認真呢！",
-                    "將死！哈哈哈，看來今天你要請我喝兩打蘆筍露喔！",
-                    "這就是經驗的差距啦，薑還是老的辣，你可以去彩繪村拍照留念散心了。",
-                    "承讓承讓，這步棋我看你也是盡力了。下次再來找阿伯討教。"
-                ]);
-            } else { // White (User) won
+            if (isWhiteTurn) { // (player) won
                 return pick([
                     "喔唷！這棋有鬼啦，一定是你偷換我的子... 好啦好啦，算你厲害。",
                     "今天這太陽真的太刺眼了，害我老人家失誤，這次就算你贏吧。",
                     "現在年輕人真的不得了，竟然能贏過好美里棋王，有前途喔！",
                     "哎呀，不小心被你鑽了空子。等下我要去廟裡跟土地公講一下。"
+                ]);
+               } else { // (uncle) won
+                return pick([
+                    "少年仔，回去多練練啦，好美里的水是很深的，阿伯我還沒認真呢！",
+                    "將死！哈哈哈，看來今天你要請我喝兩打蘆筍露喔！",
+                    "這就是經驗的差距啦，薑還是老的辣，你可以去彩繪村拍照留念散心了。",
+                    "承讓承讓，這步棋我看你也是盡力了。下次再來找阿伯討教。"
                 ]);
             }
         }
@@ -702,6 +703,47 @@ document.addEventListener('DOMContentLoaded', () => {
         msgDiv.textContent = text;
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function appendResetButton() {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message system';
+        msgDiv.innerHTML = '<div>棋局已結束。</div>';
+        
+        const btn = document.createElement('button');
+        btn.className = 'reset-btn';
+        btn.textContent = '再來一局';
+        btn.addEventListener('click', resetGame);
+        
+        msgDiv.appendChild(btn);
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function resetGame() {
+        // Reset Logic
+        initialBoard = START_POSITION.map(row => [...row]);
+        Object.keys(movedState).forEach(key => delete movedState[key]);
+        gameStateInfo = {
+            evalCP: 0,
+            phase: '開局',
+            dangerPieces: { white: [], black: [] },
+            moveCount: 0,
+            halfMoveClock: 0,
+            positionHistory: {}
+        };
+        isAITurn = false;
+        enPassantTarget = null;
+        
+        // UI Reset
+        chatMessages.innerHTML = '';
+        appendMessage('system', '新局開始。');
+        setTimeout(() => {
+            appendMessage('opponent', '又要挑戰阿伯我喔？來啊！必須來跟我這個棋王過一下招！');
+        }, 500);
+        
+        createBoard();
+        updateGameStatusUI();
     }
 
     // Initialize
