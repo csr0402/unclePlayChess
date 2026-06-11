@@ -382,3 +382,24 @@ body {
 .cell.moving-hidden {
     color: transparent !important;
 }
+
+/* Thinking Message & Dots Animation */
+.message.thinking {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-style: italic;
+    color: var(--text-dim);
+}
+
+.message.thinking .dots::after {
+    content: '';
+    animation: thinking-dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes thinking-dots {
+    0%, 100% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+}

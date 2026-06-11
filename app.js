@@ -1,6 +1,87 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const board = document.getElementById('chessboard');
     const chatMessages = document.getElementById('chat-messages');
+
+    // Load Quotes
+    let quotes = null;
+    async function loadQuotes() {
+        try {
+            let response = await fetch('quotes.json');
+            if (!response.ok) {
+                response = await fetch('quote.json');
+            }
+            quotes = await response.json();
+        } catch (error) {
+            console.error('Failed to load quotes:', error);
+            // Fallback quotes
+            quotes = {
+                welcome: "少年仔，來到嘉義好美里，必須來跟我這個棋王過一下招！",
+                resetWelcome: "又要挑戰阿伯我喔？來啊！必須來跟我這個棋王過一下招！",
+                gameOver: {
+                    playerWon: [
+                        "喔唷！這棋有鬼啦，一定是你偷換我的子... 好啦好啦，算你厲害。",
+                        "今天這太陽真的太刺眼了，害我老人家失誤，這次就算你贏吧。",
+                        "現在年輕人真的不得了，竟然能贏過好美里棋王，有前途喔！",
+                        "哎呀，不小心被你鑽了空子。等下我要去廟裡跟土地公講一下。"
+                    ],
+                    uncleWon: [
+                        "少年仔，回去多練練啦，好美里的水是很深的，阿伯我還沒認真呢！",
+                        "將死！哈哈哈，看來今天你要請我喝兩打蘆筍露喔！",
+                        "這就是經驗的差距啦，薑還是老的辣，你可以去彩繪村拍照留念散心了。",
+                        "承讓承讓，這步棋我看你也是盡力了。下次再來找阿伯討教。"
+                    ],
+                    draw: [
+                        "平手啦！不打了不打了，我們去布袋港喝下午茶看夕陽啦。",
+                        "這棋下到最後大家都不吃虧，就跟我們這的鄰里關係一樣和睦。",
+                        "和局好啊，和氣生財，等下一起去吃鮮蚵。"
+                    ]
+                },
+                danger: [
+                    "少年仔，你 {piece} 那顆棋快要被海浪捲走喔，不用救一下嗎？",
+                    "欸欸欸！你的 {piece} 露出來了啦，我們好美里這的螃蟹都沒你這麼大方。",
+                    "注意一下啦，你那個 {piece} 正被我盯著，像在看剛抓上岸的鮮蚵一樣。",
+                    "你的 {piece} 沒人顧喔？等下被我吃掉不准哭喔！"
+                ],
+                winning: [
+                    "這局我看是穩了，漁獲即將豐收",
+                    "阿伯我在這走跳幾十年，這種局見多了，你再去彩繪村多逛兩圈再來。夾去配啦！",
+                    "少年仔，你有沒有感覺海風變強了？那是阿伯我準備收網的信號啦。",
+                    "我這步棋下下去，就像新塭的虱目魚一樣彈牙，你接不住的。"
+                ],
+                losing: [
+                    "哎呀！這太陽太刺眼了，看得我老人家眼花，這步才讓你一下進度。",
+                    "剛才有隻白鷺鷥飛過去害我分心，這步不算啦... 好啦算啦算啦，讓你一點。",
+                    "喔唷？這步有備而來喔。是不是偷偷去跟東石的棋王請教過？",
+                    "現在年輕人手腳快捏，阿伯我還在想昨天那盤蚵仔煎有沒有放太鹹。"
+                ],
+                phases: {
+                    opening: [
+                        "來到好美里不先去看3D彩繪，跑來找阿伯下棋喔？開局穩一點啦！",
+                        "這開局下得跟我們這的蚵仔一樣肥美，後勁十足喔。",
+                        "慢慢來、慢慢來，好美里的生活就是這麼悠哉，不用急著衝。",
+                        "少年仔，這棋才剛鋪好，就像剛整理好的鹽田，要細心經營。"
+                    ],
+                    endgame: [
+                        "現在太陽快下山了，這局也差不多要收尾了，看阿伯我怎麼收你的軍。",
+                        "殘局了喔，這就像退潮後的海灘，誰有真本事一下就看出來了。",
+                        "嘿嘿，最後這幾顆子才是精華，就像盤底最後那顆肥美的蚵仁。",
+                        "別想跑！這最後的範圍比我們里長的辦公室還小，你躲不掉。"
+                    ]
+                },
+                general: [
+                    "這步棋... 有點意思，比我們這的老榕樹還要耐看。",
+                    "你要是輸了，等下要去龍宮溪幫我撈兩顆蚵仔喔！",
+                    "下棋要像海風一樣，快的時候很快，慢的時候要穩懂不懂？",
+                    "好美里沒什麼大道理，下棋跟出海一樣，看準了就不回頭。",
+                    "你這招... 嘖嘖，比 3D 彩繪還要花俏，華而不實喔。",
+                    "阿伯我今天早上剛拜過廟，運氣旺得很，你皮繃緊一點。",
+                    "哎呀，下到脖子有點酸，你這步走得真慢，我都快睡著了。",
+                    "聽說布袋港那邊最近漁獲不錯，等下下完我要去巡一下。"
+                ]
+            };
+        }
+    }
+    await loadQuotes();
 
     // Chess Logic Constants
     const pieces = {
@@ -42,6 +123,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let enPassantTarget = null;
     let movedState = {};
     let isAITurn = false;
+    let isThinking = false;
+    let thinkingTimeoutId = null;
+    let thinkingMessageEl = null;
+    let usedQuotes = new Set();
 
     // AI Engine Setup (Web Worker)
     let engine;
@@ -49,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         engine = new Worker('stockfish.js');
         engine.onmessage = (event) => {
             const line = typeof event === 'string' ? event : event.data;
-            
+
             // Parse AI Evaluation (Centipawns)
             if (line.includes('score cp')) {
                 const match = line.match(/score cp (-?\d+)/);
@@ -62,10 +147,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (line.startsWith('bestmove')) {
                 const uci = line.split(' ')[1];
                 if (uci && uci !== '(none)') {
-                    executeAIMove(uci);
+                    const delay = Math.random() * (3000 - 500) + 500;
+                    thinkingTimeoutId = setTimeout(() => {
+                        thinkingTimeoutId = null;
+                        isThinking = false;
+                        removeThinkingMessage();
+                        updateGameStatusUI();
+                        executeAIMove(uci);
+                    }, delay);
                 } else {
                     // AI has no moves (Checkmate or Stalemate)
                     isAITurn = false;
+                    isThinking = false;
+                    removeThinkingMessage();
                     updateGameStatusUI();
                 }
             }
@@ -121,14 +215,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     cell.textContent = ranks[i];
                 } else if (i === 8 && j > 0) {
                     cell.className = 'label file-label';
-                    cell.textContent = files[j-1];
+                    cell.textContent = files[j - 1];
                 } else if (i < 8 && j > 0) {
                     const r = i;
                     const c = j - 1;
                     const piece = initialBoard[r][c];
                     cell.className = `cell ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
                     if (selectedPos && selectedPos.r === r && selectedPos.c === c) cell.classList.add('selected');
-                    
+
                     const hint = currentHints.find(h => h.r === r && h.c === c);
                     if (hint) {
                         if (hint.type === 'capture' || hint.type === 'enPassant') {
@@ -137,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             cell.classList.add('hint'); // Blue dot
                         }
                     }
-                    
+
                     if (piece) {
                         cell.textContent = pieces[piece];
                         cell.classList.add(piece === piece.toUpperCase() ? 'piece-w' : 'piece-b');
@@ -215,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (moveData.type === 'enPassant') {
-            initialBoard[fromR][toC] = ''; 
+            initialBoard[fromR][toC] = '';
             moveMsg += " (過路吃兵!)";
         }
 
@@ -248,23 +342,23 @@ document.addEventListener('DOMContentLoaded', () => {
         initialBoard[toR][toC] = piece;
         initialBoard[fromR][fromC] = '';
         movedState[`${fromR}-${fromC}`] = true;
-        
-        enPassantTarget = (piece.toLowerCase() === 'p' && Math.abs(toR - fromR) === 2) 
-            ? { r: (fromR + toR) / 2, c: toC, vulnerableColor: isWhite ? 'w' : 'b' } 
+
+        enPassantTarget = (piece.toLowerCase() === 'p' && Math.abs(toR - fromR) === 2)
+            ? { r: (fromR + toR) / 2, c: toC, vulnerableColor: isWhite ? 'w' : 'b' }
             : null;
 
         appendMessage(isAIExecution ? 'opponent' : 'user', moveMsg);
         clearSelection();
         createBoard();
-        
+
         // Determine game state for the player who just received the turn
         const nextColor = isAIExecution ? 'W' : 'B';
         const gameState = checkGameState(nextColor);
 
         if (gameState === 'CHECKMATE' || gameState === 'STALEMATE' || gameState.startsWith('DRAW')) {
-            isAITurn = true; 
+            isAITurn = true;
             updateGameStatusUI();
-            
+
             setTimeout(() => {
                 appendMessage('opponent', getHaoMeiQuote(gameState));
                 appendResetButton();
@@ -275,6 +369,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isAIExecution) {
             isAITurn = true;
             if (engine) {
+                isThinking = true;
+                showThinkingMessage();
+                updateGameStatusUI();
                 engine.postMessage(`position fen ${getFEN('b')}`);
                 engine.postMessage(`go depth ${AI_CONFIG.depth}`);
             } else {
@@ -287,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         gameStateInfo.moveCount++;
         updateAnalysis();
-        
+
         // Record position for Repetition check
         const fenParts = getFEN(isAIExecution ? 'w' : 'b').split(' ');
         const positionKey = fenParts.slice(0, 4).join(' '); // Board + turn + castle + ep
@@ -306,96 +403,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function getHaoMeiQuote(gameState = 'NORMAL') {
-        const { evalCP, phase, dangerPieces, moveCount } = gameStateInfo;
+        if (!quotes) return "加油！";
+        const { evalCP, phase, dangerPieces } = gameStateInfo;
         const score = parseFloat(evalCP);
-        
-        // Helper to pick random from array
-        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+        // Helper to pick random from array, avoiding duplicates
+        const pick = (arr) => {
+            if (!arr || arr.length === 0) return "";
+            let available = arr.filter(q => !usedQuotes.has(q));
+            if (available.length === 0) {
+                arr.forEach(q => usedQuotes.delete(q));
+                available = arr;
+            }
+            const chosen = available[Math.floor(Math.random() * available.length)];
+            usedQuotes.add(chosen);
+            return chosen;
+        };
 
         // 1. Check for Game Over (Highest Priority)
         if (gameState === 'CHECKMATE') {
             const isWhiteTurn = !isAITurn; // This is the turn that JUST ended or is about to start
             if (isWhiteTurn) { // (player) won
-                return pick([
-                    "喔唷！這棋有鬼啦，一定是你偷換我的子... 好啦好啦，算你厲害。",
-                    "今天這太陽真的太刺眼了，害我老人家失誤，這次就算你贏吧。",
-                    "現在年輕人真的不得了，竟然能贏過好美里棋王，有前途喔！",
-                    "哎呀，不小心被你鑽了空子。等下我要去廟裡跟土地公講一下。"
-                ]);
-               } else { // (uncle) won
-                return pick([
-                    "少年仔，回去多練練啦，好美里的水是很深的，阿伯我還沒認真呢！",
-                    "將死！哈哈哈，看來今天你要請我喝兩打蘆筍露喔！",
-                    "這就是經驗的差距啦，薑還是老的辣，你可以去彩繪村拍照留念散心了。",
-                    "承讓承讓，這步棋我看你也是盡力了。下次再來找阿伯討教。"
-                ]);
+                return pick(quotes.gameOver.playerWon);
+            } else { // (uncle) won
+                return pick(quotes.gameOver.uncleWon);
             }
         }
         if (gameState.startsWith('DRAW') || gameState === 'STALEMATE') {
-            return pick([
-                "平手啦！不打了不打了，我們去布袋港喝下午茶看夕陽啦。",
-                "這棋下到最後大家都不吃虧，就跟我們這的鄰里關係一樣和睦。",
-                "和局好啊，和氣生財，等下一起去吃鮮蚵。"
-            ]);
+            return pick(quotes.gameOver.draw);
         }
 
         // 2. Check for specific danger (Lower Priority: 30% chance)
         if (dangerPieces.white.length > 0 && Math.random() < 0.3) {
-            return pick([
-                `少年仔，你 ${dangerPieces.white[0]} 那顆棋快要被海浪捲走喔，不用救一下嗎？`,
-                `欸欸欸！你的 ${dangerPieces.white[0]} 露出來了啦，我們好美里這的螃蟹都沒你這麼大方。`,
-                `注意一下啦，你那個 ${dangerPieces.white[0]} 正被我盯著，像在看剛抓上岸的鮮蚵一樣。`,
-                `你的 ${dangerPieces.white[0]} 沒人顧喔？等下被我吃掉不准哭喔！`
-            ]);
+            const template = pick(quotes.danger);
+            return template ? template.replace(/{piece}/g, dangerPieces.white[0]) : "";
         }
 
-        // 2. Game Winning / Losing Excuses (Score-based)
+        // 3. Game Winning / Losing Excuses (Score-based)
         if (score > 3) { // AI Winning
-            return pick([
-                "這局我看是穩了，就像布袋的鹽田一樣，白茫茫一片（指勝局已定）。",
-                "阿伯我在這走跳幾十年，這種局見多了，你再去彩繪村多逛兩圈再來。夾去配啦！",
-                "少年仔，你有沒有感覺海風變強了？那是阿伯我準備收網的信號啦。",
-                "我這步棋下下去，就像新塭的虱目魚一樣彈牙，你接不住的。"
-            ]);
+            return pick(quotes.winning);
         } else if (score < -3) { // Player Winning
-            return pick([
-                "哎呀！這太陽太刺眼了，看得我老人家眼花，這步才讓你一下進度。",
-                "剛才有隻白鷺鷥飛過去害我分心，這步不算啦... 好啦算啦算啦，讓你一點。",
-                "喔唷？這步有備而來喔。是不是偷偷去跟東石的棋王請教過？",
-                "現在年輕人手腳很快捏，阿伯我還在想昨天那盤蚵仔煎有沒有放太鹹。"
-            ]);
+            return pick(quotes.losing);
         }
 
-        // 3. Based on Phase (Opening, Mid, End)
+        // 4. Based on Phase (Opening, Mid, End)
         if (phase === '開局') {
-            return pick([
-                "來到好美里不先去看3D彩繪，跑來找阿伯下棋喔？開局穩一點啦！",
-                "這開局下得跟我們這的蚵仔一樣肥美，後勁十足喔。",
-                "慢慢來、慢慢來，好美里的生活就是這麼悠哉，不用急著衝。",
-                "少年仔，這棋才剛鋪好，就像剛整理好的鹽田，要細心經營。"
-            ]);
+            return pick(quotes.phases.opening);
         }
 
         if (phase === '殘局') {
-            return pick([
-                "現在太陽快下山了，這局也差不多要收尾了，看阿伯我怎麼收你的軍。",
-                "殘局了喔，這就像退潮後的海灘，誰有真本事一下就看出來了。",
-                "嘿嘿，最後這幾顆子才是精華，就像盤底最後那顆肥美的蚵仁。",
-                "別想跑！這最後的範圍比我們里長的辦公室還小，你躲不掉。"
-            ]);
+            return pick(quotes.phases.endgame);
         }
 
-        // 4. General Banter
-        return pick([
-            "這步棋... 有點意思，比我們這的老榕樹還要耐看。",
-            "你要是輸了，等下要去龍宮溪幫我撈兩顆蚵仔喔！",
-            "下棋要像海風一樣，快的時候很快，慢的時候要穩懂不懂？",
-            "好美里沒什麼大道理，下棋跟出海一樣，看準了就不回頭。",
-            "你這招... 嘖嘖，比 3D 彩繪還要花俏，華而不實喔。",
-            "阿伯我今天早上剛拜過廟，運氣旺得很，你皮繃緊一點。",
-            "哎呀，下到脖子有點酸，你這步走得真慢，我都快睡著了。",
-            "聽說布袋港那邊最近漁獲不錯，等下下完我要去巡一下。"
-        ]);
+        // 5. General Banter
+        return pick(quotes.general);
     }
 
     function executeAIMove(uci) {
@@ -403,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fromR = ranks.indexOf(uci[1]);
         const toC = files.indexOf(uci[2]);
         const toR = ranks.indexOf(uci[3]);
-        
+
         const piece = initialBoard[fromR][fromC];
         if (!piece) return;
 
@@ -416,12 +477,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const overlay = document.getElementById('promotion-overlay');
             const options = document.querySelectorAll('.promo-option');
             overlay.style.display = 'flex';
-            
+
             options.forEach(opt => {
                 const basePiece = opt.dataset.piece;
                 const actualPiece = isWhite ? basePiece : basePiece.toLowerCase();
                 opt.textContent = pieces[actualPiece];
-                
+
                 const handler = () => {
                     overlay.style.display = 'none';
                     options.forEach(o => o.removeEventListener('click', handler));
@@ -508,7 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return pseudoMoves.filter(m => {
             const tempBoard = simulateMove(r, c, m.r, m.c, boardState);
-            if (m.type === 'enPassant') tempBoard[r][m.c] = ''; 
+            if (m.type === 'enPassant') tempBoard[r][m.c] = '';
             return !isKingInCheck(isWhite ? 'W' : 'B', tempBoard);
         });
     }
@@ -607,7 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Check if either side is already in a game-over state
         const whiteStatus = checkGameState('W');
         const blackStatus = checkGameState('B');
-        
+
         const indicator = document.querySelector('.turn-indicator');
         const isWhiteTurn = !isAITurn;
 
@@ -633,8 +694,12 @@ document.addEventListener('DOMContentLoaded', () => {
             indicator.textContent = '黑方 - 將軍！';
             indicator.style.color = '#ef4444';
         } else {
-            indicator.textContent = isWhiteTurn ? '白方回合' : '黑方回合';
-            indicator.style.color = '';
+            indicator.textContent = isWhiteTurn ? '白方回合' : (isThinking ? '阿伯思考中...' : '黑方回合');
+            if (!isWhiteTurn && isThinking) {
+                indicator.style.color = '#06b6d4';
+            } else {
+                indicator.style.color = '';
+            }
         }
 
         // Analysis console output
@@ -651,7 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Determine Game Phase
         let totalMaterial = 0;
         const pieceWeight = { 'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9, 'k': 0 };
-        
+
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
                 const p = initialBoard[r][c];
@@ -676,7 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const isWhite = piece === piece.toUpperCase();
                 const attackerColor = isWhite ? 'b' : 'w';
-                
+
                 if (isSquareAttacked(r, c, attackerColor)) {
                     // Check if is defended (simulate removing this piece to see if square is still covered)
                     const isDefended = isSquareAttacked(r, c, isWhite ? 'w' : 'b', simulateRemove(r, c));
@@ -696,6 +761,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return newBoard;
     }
 
+    function showThinkingMessage() {
+        if (thinkingMessageEl) return;
+        thinkingMessageEl = document.createElement('div');
+        thinkingMessageEl.className = 'message opponent thinking';
+        thinkingMessageEl.textContent = '阿伯思考中';
+        
+        const dots = document.createElement('span');
+        dots.className = 'dots';
+        thinkingMessageEl.appendChild(dots);
+        
+        chatMessages.appendChild(thinkingMessageEl);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeThinkingMessage() {
+        if (thinkingMessageEl) {
+            thinkingMessageEl.remove();
+            thinkingMessageEl = null;
+        }
+    }
+
     // Chat Logic
     function appendMessage(sender, text) {
         const msgDiv = document.createElement('div');
@@ -709,12 +795,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const msgDiv = document.createElement('div');
         msgDiv.className = 'message system';
         msgDiv.innerHTML = '<div>棋局已結束。</div>';
-        
+
         const btn = document.createElement('button');
         btn.className = 'reset-btn';
         btn.textContent = '再來一局';
         btn.addEventListener('click', resetGame);
-        
+
         msgDiv.appendChild(btn);
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -722,6 +808,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetGame() {
         // Reset Logic
+        if (thinkingTimeoutId) {
+            clearTimeout(thinkingTimeoutId);
+            thinkingTimeoutId = null;
+        }
+        isThinking = false;
+        removeThinkingMessage();
+        usedQuotes.clear();
+
         initialBoard = START_POSITION.map(row => [...row]);
         Object.keys(movedState).forEach(key => delete movedState[key]);
         gameStateInfo = {
@@ -734,14 +828,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         isAITurn = false;
         enPassantTarget = null;
-        
+
         // UI Reset
         chatMessages.innerHTML = '';
         appendMessage('system', '新局開始。');
         setTimeout(() => {
-            appendMessage('opponent', '又要挑戰阿伯我喔？來啊！必須來跟我這個棋王過一下招！');
+            appendMessage('opponent', quotes ? quotes.resetWelcome : '又要挑戰阿伯我喔？來啊！隨時奉陪！');
         }, 500);
-        
+
         createBoard();
         updateGameStatusUI();
     }
@@ -749,9 +843,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize
     createBoard();
     updateGameStatusUI();
-    
+
     // Initial welcome message (Hao-Mei Uncle style)
     setTimeout(() => {
-        appendMessage('opponent', '少年仔，來到嘉義好美里，必須來跟我這個棋王過一下招！');
+        appendMessage('opponent', quotes ? quotes.welcome : '少年仔，來到嘉義好美里，必須來跟我這個棋王過一下招！');
     }, 500);
 });
